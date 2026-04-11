@@ -14,7 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          context: string | null
+          created_at: string
+          date: string | null
+          id: string
+          person_id: string | null
+          person_name: string | null
+          raw_input: string | null
+          type: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          date?: string | null
+          id?: string
+          person_id?: string | null
+          person_name?: string | null
+          raw_input?: string | null
+          type: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          date?: string | null
+          id?: string
+          person_id?: string | null
+          person_name?: string | null
+          raw_input?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inputs: {
+        Row: {
+          created_at: string
+          id: string
+          parsed_data: Json | null
+          processed: boolean | null
+          raw_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parsed_data?: Json | null
+          processed?: boolean | null
+          raw_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parsed_data?: Json | null
+          processed?: boolean | null
+          raw_text?: string
+        }
+        Relationships: []
+      }
+      people: {
+        Row: {
+          attributes: Json | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          person_id: string | null
+          person_name: string | null
+          source: string | null
+          status: string
+          suggested_action: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          person_id?: string | null
+          person_name?: string | null
+          source?: string | null
+          status?: string
+          suggested_action?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          person_id?: string | null
+          person_name?: string | null
+          source?: string | null
+          status?: string
+          suggested_action?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
