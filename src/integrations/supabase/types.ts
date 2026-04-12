@@ -24,6 +24,7 @@ export type Database = {
           person_name: string | null
           raw_input: string | null
           type: string
+          user_id: string | null
         }
         Insert: {
           context?: string | null
@@ -34,6 +35,7 @@ export type Database = {
           person_name?: string | null
           raw_input?: string | null
           type: string
+          user_id?: string | null
         }
         Update: {
           context?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           person_name?: string | null
           raw_input?: string | null
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -62,6 +65,7 @@ export type Database = {
           parsed_data: Json | null
           processed: boolean | null
           raw_text: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -69,6 +73,7 @@ export type Database = {
           parsed_data?: Json | null
           processed?: boolean | null
           raw_text: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -76,6 +81,7 @@ export type Database = {
           parsed_data?: Json | null
           processed?: boolean | null
           raw_text?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -84,25 +90,58 @@ export type Database = {
           attributes: Json | null
           created_at: string
           id: string
+          last_interaction_at: string | null
           name: string
           notes: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           attributes?: Json | null
           created_at?: string
           id?: string
+          last_interaction_at?: string | null
           name: string
           notes?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           attributes?: Json | null
           created_at?: string
           id?: string
+          last_interaction_at?: string | null
           name?: string
           notes?: string | null
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -117,6 +156,7 @@ export type Database = {
           source: string | null
           status: string
           suggested_action: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -128,6 +168,7 @@ export type Database = {
           source?: string | null
           status?: string
           suggested_action?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -139,6 +180,7 @@ export type Database = {
           source?: string | null
           status?: string
           suggested_action?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {

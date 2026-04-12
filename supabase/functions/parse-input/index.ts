@@ -19,12 +19,30 @@ serve(async (req) => {
       });
     }
 
+    // Get user from JWT
+    const authHeader = req.headers.get("authorization");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Create user-context client to get user
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader || "" } },
+    });
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = user.id;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -106,28 +124,28 @@ Be smart about dates. If someone says "birthday is 15 April", use the next occur
       raw_text: text,
       parsed_data: parsed,
       processed: true,
+      user_id: userId,
     });
 
-    // Upsert person
+    // Upsert person (duplicate prevention via user_id + name)
     const { data: existingPeople } = await supabase
       .from("people")
       .select("*")
+      .eq("user_id", userId)
       .ilike("name", parsed.person_name);
 
     let person;
     if (existingPeople && existingPeople.length > 0) {
       person = existingPeople[0];
-      // Merge preferences
       const existingAttrs = person.attributes || {};
-      const existingLikes = existingAttrs.likes || [];
+      const existingLikes = (existingAttrs as any).likes || [];
       const newLikes = [...new Set([...existingLikes, ...(parsed.preferences || [])])];
       await supabase
         .from("people")
         .update({
           attributes: { ...existingAttrs, likes: newLikes },
-          notes: person.notes
-            ? `${person.notes}\n${parsed.context}`
-            : parsed.context,
+          notes: person.notes ? `${person.notes}\n${parsed.context}` : parsed.context,
+          last_interaction_at: new Date().toISOString(),
         })
         .eq("id", person.id);
       person = { ...person, attributes: { ...existingAttrs, likes: newLikes } };
@@ -138,13 +156,15 @@ Be smart about dates. If someone says "birthday is 15 April", use the next occur
           name: parsed.person_name,
           attributes: { likes: parsed.preferences || [] },
           notes: parsed.context,
+          user_id: userId,
+          last_interaction_at: new Date().toISOString(),
         })
         .select()
         .single();
       person = newPerson;
     }
 
-    // Create event if applicable
+    // Create event
     if (parsed.event_type) {
       await supabase.from("events").insert({
         type: parsed.event_type,
@@ -153,6 +173,7 @@ Be smart about dates. If someone says "birthday is 15 April", use the next occur
         date: parsed.date || null,
         context: parsed.context,
         raw_input: text,
+        user_id: userId,
       });
     }
 
@@ -166,17 +187,18 @@ Be smart about dates. If someone says "birthday is 15 April", use the next occur
         due_date: parsed.task_due_date || null,
         status: "pending",
         source: text,
+        user_id: userId,
       });
     }
 
-    // Generate birthday reminder task if birthday event
+    // Birthday reminder
     if (parsed.event_type === "birthday" && parsed.date) {
       const bday = new Date(parsed.date);
       const reminderDate = new Date(bday);
       reminderDate.setDate(reminderDate.getDate() - 2);
 
       const personAttrs = person?.attributes || {};
-      const likes = personAttrs.likes || [];
+      const likes = (personAttrs as any).likes || [];
       const giftSuggestion = likes.length > 0
         ? `Consider getting: ${likes.join(", ")}`
         : "Consider getting a thoughtful gift";
@@ -189,6 +211,7 @@ Be smart about dates. If someone says "birthday is 15 April", use the next occur
         due_date: reminderDate.toISOString().split("T")[0],
         status: "pending",
         source: "birthday_reminder",
+        user_id: userId,
       });
     }
 
