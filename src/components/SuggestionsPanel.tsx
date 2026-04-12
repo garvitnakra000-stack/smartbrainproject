@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Lightbulb, Check, Clock, Phone, Gift } from "lucide-react";
+import { Lightbulb, Check, Clock, Phone, Gift, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Task {
@@ -54,6 +54,12 @@ export function SuggestionsPanel({ refreshKey, searchQuery }: SuggestionsPanelPr
   const markDone = async (id: string) => {
     await supabase.from("tasks").update({ status: "done" }).eq("id", id);
     toast.success("Marked as done!");
+    fetchTasks();
+  };
+
+  const deleteTask = async (id: string) => {
+    await supabase.from("tasks").delete().eq("id", id);
+    toast.success("Deleted!");
     fetchTasks();
   };
 
@@ -129,12 +135,22 @@ export function SuggestionsPanel({ refreshKey, searchQuery }: SuggestionsPanelPr
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => markDone(task.id)}
-                  className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition-all"
-                >
-                  <Check className="h-4 w-4" />
-                </button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  <button
+                    onClick={() => markDone(task.id)}
+                    className="h-8 w-8 rounded-lg bg-success/10 text-success flex items-center justify-center hover:bg-success/20 transition-colors"
+                    title="Mark complete"
+                  >
+                    <Check className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             );
           })}

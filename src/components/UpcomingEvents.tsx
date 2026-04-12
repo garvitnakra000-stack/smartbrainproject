@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Cake, Phone, Users } from "lucide-react";
+import { Calendar, Cake, Phone, Users, Trash2, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface Event {
   id: string;
@@ -27,23 +28,30 @@ export function UpcomingEvents({ refreshKey, searchQuery }: UpcomingEventsProps)
   const [events, setEvents] = useState<Event[]>([]);
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
+  const fetchEvents = async () => {
+    let query = supabase
+      .from("events")
+      .select("*")
+      .order("date", { ascending: true, nullsFirst: false })
+      .limit(30);
+
+    if (typeFilter !== "all") {
+      query = query.eq("type", typeFilter);
+    }
+
+    const { data } = await query;
+    setEvents(data || []);
+  };
+
   useEffect(() => {
-    const fetchEvents = async () => {
-      let query = supabase
-        .from("events")
-        .select("*")
-        .order("date", { ascending: true, nullsFirst: false })
-        .limit(30);
-
-      if (typeFilter !== "all") {
-        query = query.eq("type", typeFilter);
-      }
-
-      const { data } = await query;
-      setEvents(data || []);
-    };
     fetchEvents();
   }, [refreshKey, typeFilter]);
+
+  const deleteEvent = async (id: string) => {
+    await supabase.from("events").delete().eq("id", id);
+    toast.success("Event deleted!");
+    fetchEvents();
+  };
 
   const filtered = events.filter((ev) => {
     if (!searchQuery) return true;
@@ -83,7 +91,7 @@ export function UpcomingEvents({ refreshKey, searchQuery }: UpcomingEventsProps)
           {filtered.map((event) => {
             const Icon = typeIcons[event.type] || Calendar;
             return (
-              <div key={event.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+              <div key={event.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group">
                 <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <Icon className="h-4 w-4" />
                 </div>
@@ -98,6 +106,13 @@ export function UpcomingEvents({ refreshKey, searchQuery }: UpcomingEventsProps)
                     {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </span>
                 )}
+                <button
+                  onClick={() => deleteEvent(event.id)}
+                  className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-all"
+                  title="Delete event"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             );
           })}
