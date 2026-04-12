@@ -5,7 +5,7 @@ import { User, ChevronRight, Heart, X, Clock } from "lucide-react";
 interface Person {
   id: string;
   name: string;
-  attributes: { likes?: string[] };
+  attributes: { likes?: string[] } | null;
   notes: string | null;
   created_at: string;
   last_interaction_at: string | null;
