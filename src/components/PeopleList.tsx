@@ -35,7 +35,7 @@ export function PeopleList({ refreshKey, searchQuery }: PeopleListProps) {
         .from("people")
         .select("*")
         .order("last_interaction_at", { ascending: false, nullsFirst: false });
-      setPeople(data || []);
+      setPeople((data as unknown as Person[]) || []);
     };
     fetchPeople();
   }, [refreshKey]);
