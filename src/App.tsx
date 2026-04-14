@@ -26,10 +26,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/auth" element={<AuthCallback />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/auth" element={<Navigate to="/" />} />
+</Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
