@@ -21,7 +21,6 @@ interface BrainInputProps {
 }
 
 export function BrainInput({ onInputProcessed }: BrainInputProps) {
-  const { session } = useAuth();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -43,10 +42,8 @@ export function BrainInput({ onInputProcessed }: BrainInputProps) {
 
     try {
       const { data, error } = await supabase.functions.invoke("chat", {
-        body: { message: userMessage, conversation_id: conversationId },
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-      });
-
+  body: { message: userMessage, conversation_id: conversationId },
+});
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
