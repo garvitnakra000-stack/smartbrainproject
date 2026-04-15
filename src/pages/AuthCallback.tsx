@@ -7,14 +7,15 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase automatically parses the token from the URL hash/query
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
         navigate("/", { replace: true });
-      } else {
+      } else if (event === "SIGNED_OUT" || !session) {
         navigate("/auth", { replace: true });
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
