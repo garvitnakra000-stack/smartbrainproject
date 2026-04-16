@@ -33,7 +33,22 @@ export function UpcomingEvents({ refreshKey, searchQuery, themeColor, isDark }: 
   const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   useEffect(() => { fetchEvents(); }, [refreshKey, statusFilter]);
+  useEffect(() => {
+  const channel = supabase
+    .channel('events-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'events' },
+      () => {
+        fetchEvents();
+      }
+    )
+    .subscribe();
 
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [statusFilter]);
   const fetchEvents = async () => {
     let query = supabase.from("events").select("*")
       .order("event_date", { ascending: true, nullsFirst: false }).limit(60);
