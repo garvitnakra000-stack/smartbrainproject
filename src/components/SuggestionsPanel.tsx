@@ -40,7 +40,24 @@ export function SuggestionsPanel({ refreshKey, searchQuery, themeColor, isDark }
   const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   useEffect(() => { fetchTasks(); }, [refreshKey, filter]);
+  // Add this inside SuggestionsPanel, after the existing useEffect
+useEffect(() => {
+  const channel = supabase
+    .channel('tasks-changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks' },
+      () => {
+        fetchTasks(); // re-fetch whenever any task row changes
+      }
+    )
+    .subscribe();
 
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [filter]); // re-subscribe if filter changes
+  
   const fetchTasks = async () => {
     let query = supabase.from("tasks").select("*")
       .order("due_date", { ascending: true, nullsFirst: false })
